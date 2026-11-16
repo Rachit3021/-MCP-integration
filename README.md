@@ -110,6 +110,34 @@ venv\Scripts\python.exe demo.py agent --job JOB-001          # offline
 venv\Scripts\python.exe demo.py agent --job JOB-001 --llm    # Groq
 ```
 
+## Run in VS Code
+
+1. **File → Open Folder…** and choose this project folder (not an individual file).
+2. **Ctrl+Shift+P → Python: Select Interpreter** → pick `.\venv\Scripts\python.exe`.
+3. **Ctrl+Shift+D** (Run and Debug) → choose a configuration → **F5**.
+
+Committed launch configurations:
+
+| Configuration | What it runs |
+| --- | --- |
+| `Demo: all steps` | `demo.py all` — discovery, resources, batch, watch, agent |
+| `Agent: offline demo` | `matching_agent.py --demo --offline` |
+| `Agent: LLM demo` | `matching_agent.py --demo` (loads `.env`) |
+| `Tests: pytest` | full test suite with `-v` |
+| `Filesystem MCP: selftest` | server health check, then exits |
+| `Job board MCP: selftest` | server health check, then exits |
+| `Filesystem MCP: HTTP :8765` | streamable-http transport |
+| `Job board MCP: HTTP :8766` | streamable-http transport |
+
+Prefer the integrated terminal? **Ctrl+`** and run the commands from
+[Guided demo](#guided-demo) or [Agent commands](#agent-commands).
+
+> **Why "Run Python File" looks stuck:** the servers default to **stdio**, so
+> they wait silently for a JSON-RPC client on stdin. That is normal. Use the
+> `--selftest` configuration to check a server, or let `demo.py` /
+> `matching_agent.py` launch it as a subprocess. Use the HTTP configurations if
+> you want a server that runs on its own.
+
 ## Agent commands
 
 ```bash
@@ -254,6 +282,7 @@ See [TEST_SCENARIOS.md](TEST_SCENARIOS.md) for every case and expected output.
 | `matching_agent.py` | **Part B** LangGraph agent, LLM + offline planners, CLI |
 | `demo.py` | Guided demo runner |
 | `mcp_config.py` / `mcp_config.json` | Configuration loader and defaults |
+| `.vscode/launch.json` | One-click demo, agent, test and server configurations |
 | `llm_file_assistant.py` | Milestone 1 agent, kept for reference (not imported) |
 | `generate_sample_resumes.py` | Creates the six sample resumes |
 | `test_*.py` | Automated test suite |
