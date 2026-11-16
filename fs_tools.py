@@ -15,6 +15,7 @@ read_file(filepath)                    -> dict
 list_files(directory, extension=None)  -> list
 write_file(filepath, content)          -> dict
 search_in_file(filepath, keyword)      -> dict
+search_in_text(text, keyword)          -> dict   # batch-friendly helper
 
 Supported read formats: .txt, .md, .pdf (pypdf), .docx (python-docx)
 """
@@ -291,6 +292,54 @@ def write_file(filepath: str, content: str, append: bool = False) -> dict:
 # --------------------------------------------------------------------------- #
 # Tool 4: search_in_file
 # --------------------------------------------------------------------------- #
+def search_in_text(
+    text: str,
+    keyword: str,
+    context_chars: int = 80,
+    max_matches: int = 25,
+    filepath: str | None = None,
+) -> dict:
+    """
+    Search already-extracted text (used by batch processing to avoid re-reading).
+
+    The matching rules are identical to :func:`search_in_file`.
+    """
+    if not keyword or not str(keyword).strip():
+        return _error("keyword must be a non-empty string", filepath=filepath, keyword=keyword)
+
+    words = str(keyword).split()
+    pattern = re.compile(r"\s+".join(re.escape(w) for w in words), re.IGNORECASE)
+
+    matches = []
+    total = 0
+    for m in pattern.finditer(text):
+        total += 1
+        if len(matches) >= max_matches:
+            continue
+        start = max(0, m.start() - context_chars)
+        end = min(len(text), m.end() + context_chars)
+        snippet = " ".join(text[start:end].split())  # collapse newlines/whitespace
+        context = ("..." if start > 0 else "") + snippet + ("..." if end < len(text) else "")
+        matches.append(
+            {
+                "line": text.count("\n", 0, m.start()) + 1,
+                "position": m.start(),
+                "match": m.group(0),
+                "context": context,
+            }
+        )
+
+    return {
+        "success": True,
+        "filepath": filepath,
+        "keyword": keyword,
+        "found": total > 0,
+        "match_count": total,
+        "matches": matches,
+        "truncated": total > len(matches),
+    }
+
+
 def search_in_file(
     filepath: str,
     keyword: str,
@@ -328,38 +377,13 @@ def search_in_file(
     if not doc["success"]:
         return _error(doc["error"], filepath=filepath, keyword=keyword)
 
-    text = doc["content"]
-    words = str(keyword).split()
-    pattern = re.compile(r"\s+".join(re.escape(w) for w in words), re.IGNORECASE)
-
-    matches = []
-    total = 0
-    for m in pattern.finditer(text):
-        total += 1
-        if len(matches) >= max_matches:
-            continue
-        start = max(0, m.start() - context_chars)
-        end = min(len(text), m.end() + context_chars)
-        snippet = " ".join(text[start:end].split())  # collapse newlines/whitespace
-        context = ("..." if start > 0 else "") + snippet + ("..." if end < len(text) else "")
-        matches.append(
-            {
-                "line": text.count("\n", 0, m.start()) + 1,
-                "position": m.start(),
-                "match": m.group(0),
-                "context": context,
-            }
-        )
-
-    return {
-        "success": True,
-        "filepath": doc["filepath"],
-        "keyword": keyword,
-        "found": total > 0,
-        "match_count": total,
-        "matches": matches,
-        "truncated": total > len(matches),
-    }
+    return search_in_text(
+        doc["content"],
+        keyword,
+        context_chars=context_chars,
+        max_matches=max_matches,
+        filepath=doc["filepath"],
+    )
 
 
 if __name__ == "__main__":

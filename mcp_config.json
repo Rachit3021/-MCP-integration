@@ -1,0 +1,75 @@
+{
+  "server": {
+    "name": "filesystem-mcp",
+    "title": "Filesystem MCP Server",
+    "version": "2.0.0",
+    "instructions": "Resume workspace server. Use read_file, list_files, search_in_file and write_file for single files. Use batch_process to read, search or score many resumes in one call. Use watch_directory to detect newly added resumes. Resource URIs: resumes://catalog, resumes://summary, resumes://file/{name}, workspace://config, workspace://stats, workspace://file/{+path}. All paths are sandboxed to the configured workspace."
+  },
+  "workspace": {
+    "root": ".",
+    "allowed_read_extensions": [".txt", ".md", ".pdf", ".docx"],
+    "blocked_write_extensions": [".pdf", ".docx", ".doc", ".xlsx", ".png", ".jpg", ".jpeg", ".zip"],
+    "max_file_bytes": 20971520
+  },
+  "resumes": {
+    "directory": "resumes"
+  },
+  "batch": {
+    "max_files": 200,
+    "concurrency": 4,
+    "text_preview_chars": 2000,
+    "max_matches_per_keyword": 5
+  },
+  "watch": {
+    "poll_interval_seconds": 0.5,
+    "max_wait_seconds": 30,
+    "default_extensions": [".pdf", ".docx", ".txt", ".md"]
+  },
+  "skills": {
+    "lexicon": [
+      "Python", "Django", "FastAPI", "Flask", "PostgreSQL", "MySQL", "MongoDB",
+      "Redis", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "Terraform",
+      "GitHub Actions", "Jenkins", "CI/CD", "Linux", "Bash", "Airflow", "ETL",
+      "scikit-learn", "pandas", "matplotlib", "Tableau", "Excel", "SQL",
+      "A/B testing", "Statistics", "Machine Learning", "Java", "Spring Boot",
+      "Hibernate", "Kafka", "Microservices", "REST", "GraphQL", "JavaScript",
+      "TypeScript", "React", "Next.js", "Tailwind CSS", "Jest", "Figma",
+      "Prometheus", "Product strategy", "Roadmapping", "Agile", "Scrum", "JIRA",
+      "User research", "Data analysis", "Node.js", "Go", "C#"
+    ]
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "servers": {
+    "filesystem": {
+      "enabled": true,
+      "command": "auto",
+      "args": ["filesystem_mcp_server.py"],
+      "cwd": ".",
+      "env": {}
+    },
+    "jobs": {
+      "enabled": true,
+      "command": "auto",
+      "args": ["job_board_mcp_server.py"],
+      "cwd": ".",
+      "env": {}
+    }
+  },
+  "jobs": {
+    "db_path": "data/jobs.db",
+    "auto_seed": true
+  },
+  "agent": {
+    "model": "openai/gpt-oss-120b",
+    "base_url": "https://api.groq.com/openai/v1",
+    "max_steps": 10,
+    "temperature": 0.2,
+    "max_tool_result_chars": 16000,
+    "mcp_timeout_seconds": 60,
+    "report_dir": "reports",
+    "trace_dir": "runs",
+    "default_job_id": "JOB-001"
+  }
+}
